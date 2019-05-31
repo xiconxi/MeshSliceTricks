@@ -13,15 +13,13 @@ bool readOFF(const std::string file_path, std::vector<glm::vec3>& v, std::vector
 	if(!file.is_open()) return false;
 	std::string line_head;
 	file >> line_head;
-	if(line_head != "OFF") return false;
+	if( !(line_head == "OFF" || line_head != "off" )) return false;
 	int vs, fs, es;
 	file >> vs >> fs >> es;
 	v.resize(vs);
 	f.resize(fs);
 	for(auto& e: v) file >> e.r >> e.g >> e.b;
-	for(auto& e: f) {
-		file >> es >> e.r >> e.g >> e.b;
-	}
+	for(auto& e: f)  file >> es >> e.r >> e.g >> e.b;
 	return true;
 }
 
@@ -73,6 +71,98 @@ bool readSTL(const std::string file_path, std::vector<glm::vec3> &V, std::vector
 	
 	if(is_ascii)
 	{
+		// Rewind to end of header
+		//stl_file = fopen(filename.c_str(),"r");
+		//stl_file = freopen(NULL,"r",stl_file);
+		fseek(stl_file, 0, SEEK_SET);
+		if(NULL==stl_file)
+		{
+			fprintf(stderr,"IOError: stl file could not be reopened as ascii ...\n");
+			return false;
+		}
+		// Read 80 header
+		// Eat file name
+#  define IGL_LINE_MAX 2048
+		char name[IGL_LINE_MAX];
+		if(NULL==fgets(name,IGL_LINE_MAX,stl_file))
+		{
+			cerr<<"IOError: ascii too short (2)."<<endl;
+			goto close_false;
+		}
+		// ascii
+		while(true)
+		{
+			int ret;
+			char facet[IGL_LINE_MAX],normal[IGL_LINE_MAX];
+			glm::vec3 n;
+			double nd[3];
+			ret = fscanf(stl_file,"%s %s %lg %lg %lg",facet,normal,nd,nd+1,nd+2);
+			if(string("endsolid") == facet)
+			{
+				break;
+			}
+			if(ret != 5 ||
+				!(string("facet") == facet ||
+					string("faced") == facet) ||
+				string("normal") != normal)
+			{
+				cout<<"facet: "<<facet<<endl;
+				cout<<"normal: "<<normal<<endl;
+				cerr<<"IOError: bad format (1)."<<endl;
+				goto close_false;
+			}
+			// copy casts to Type
+			n[0] = nd[0]; n[1] = nd[1]; n[2] = nd[2];
+			V.push_back(n);
+			char outer[IGL_LINE_MAX], loop[IGL_LINE_MAX];
+			ret = fscanf(stl_file,"%s %s",outer,loop);
+			if(ret != 2 || string("outer") != outer || string("loop") != loop)
+			{
+				cerr<<"IOError: bad format (2)."<<endl;
+				goto close_false;
+			}
+			glm::ivec3 f;
+			for(int i : {0, 1, 2})
+			{
+				char word[IGL_LINE_MAX];
+				int ret = fscanf(stl_file,"%s",word);
+				if(ret == 1 && string("vertex") == word)
+				{
+					glm::vec3 v;
+					double vd[3];
+					int ret = fscanf(stl_file,"%lg %lg %lg",vd,vd+1,vd+2);
+					if(ret != 3)
+					{
+						cerr<<"IOError: bad format (3)."<<endl;
+						goto close_false;
+					}
+					f[i] = V.size();
+					// copy casts to Type
+					v[0] = vd[0]; v[1] = vd[1]; v[2] = vd[2];
+					V.push_back(v);
+				}else
+				{
+					cerr<<"IOError: bad format (4)."<<endl;
+					goto close_false;
+				}
+			}
+			F.push_back(f);
+			char endfacet[IGL_LINE_MAX];
+			ret = fscanf(stl_file,"%s",endfacet);
+			if(ret != 1 || string("endloop") != endfacet)
+			{
+				cerr<<"IOError: bad format endloop (5)."<<endl;
+				break;
+			}
+			ret = fscanf(stl_file,"%s",endfacet);
+			if(ret != 1 || string("endfacet") != endfacet)
+			{
+				cerr<<"IOError: bad format (5)."<<endl;
+				goto close_false;
+			}
+		}
+		// read endfacet
+		goto close_true;
 		std::cerr << "Only Supported binary STL." << std::endl;
 	}else
 	{

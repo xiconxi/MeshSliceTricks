@@ -74,6 +74,7 @@ int main(int argc, char** argv) {
 	
 	shader.Use();
 	shader.AddUniform("mvp");
+	shader.AddUniform("enable_discard");
 	shader.AddUniform("slice_axis_d");
 	shader.AddUniform("slice_partial");
 	shader.UnUse();
@@ -99,10 +100,12 @@ int main(int argc, char** argv) {
 	
 	glfwSetDropCallback(window, [](GLFWwindow* window, int count, const char** paths) -> void {
 		v.clear(); f.clear();
-		if(std::string(paths[0]).find(".STL") || std::string(paths[0]).find(".stl"))
+		
+		if(std::string(paths[0]).find(".STL") != std::string::npos || std::string(paths[0]).find(".stl") != std::string::npos) {
 			readSTL(paths[0], v, f);
-		else if (std::string(paths[0]).find(".off") || std::string(paths[0]).find(".OFF"))
+		}else if (std::string(paths[0]).find(".off") != std::string::npos || std::string(paths[0]).find(".OFF") != std::string::npos){
 			readOFF(paths[0], v, f);
+		}
 		assert(v.size() && v.size());
 		centralization(v);
 		params.updateInterval(v);
@@ -123,6 +126,7 @@ int main(int argc, char** argv) {
 		glEnable(GL_DEPTH_TEST);
 		
 		shader.Use();
+		glUniform1i(shader("enable_discard"), params.enable);
 		glUniform4fv(shader("slice_axis_d"), 1, glm::value_ptr( glm::vec4(params.axis , params.intervals[0])/ (params.width) ));
 		glUniformMatrix4fv(shader("mvp"), 1, GL_FALSE, glm::value_ptr(cam.p()*cam.v()));
 		glUniform2i(shader("slice_partial"), params.partial[0], params.partial[1]);

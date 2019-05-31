@@ -47,7 +47,7 @@ struct SliceParams{
 		update_from_n();
 		update_partial_from_n();
 	}
-	
+	bool enable = false;
 	int nslices = 15;
 	float width;
 	glm::vec2 intervals;
@@ -82,11 +82,15 @@ class imgui_glfw_handle{
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
-		
 		ImGui::Begin("Control");
 		
-		
-		if(m_params) {
+		if(m_params ) {
+			
+			if( ImGui::Button("Enable Slice") ) {
+				m_params->enable = !m_params->enable;
+			}
+			
+			
 			if(ImGui::InputInt("nslices", &m_params->nslices)){
 				m_params->update_from_n();
 				m_params->update_partial_from_n();
@@ -97,6 +101,16 @@ class imgui_glfw_handle{
 			}
 			
 			ImGui::Text("slices axis  %0.3f, %0.3f,  %0.3f", m_params->axis[0], m_params->axis[1], m_params->axis[2]);
+			
+			if(ImGui::Button("SAxis X", ImVec2(80, 19))) {
+				m_params->axis = glm::vec3(1, 0, 0);
+			}ImGui::SameLine(0.0f, 3.0f);
+			if(ImGui::Button("SAxis Y", ImVec2(80, 19))) {
+				m_params->axis = glm::vec3(0, 1, 0);
+			}ImGui::SameLine(0.0f, 3.0f);
+			if(ImGui::Button("SAxis Z", ImVec2(80, 19))) {
+				m_params->axis = glm::vec3(0, 0, 1);
+			}
 			
 			ImGui::Text("slices partial: [%d, %d)", m_params->partial[0], m_params->partial[0]+m_params->partial[1]);
 			ImGui::SameLine(0.0f, 3.0f);
