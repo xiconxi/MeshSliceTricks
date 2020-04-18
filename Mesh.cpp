@@ -23,6 +23,50 @@ bool readOFF(const std::string file_path, std::vector<glm::vec3>& v, std::vector
 	return true;
 }
 
+bool readOBJ(const std::string file_path, std::vector<glm::vec3> &meshv, std::vector<glm::ivec3>  &meshf ) {
+    std::ifstream fileHandle(file_path,std::ios_base::in);
+    if(!fileHandle.is_open() ) {
+        return false;
+    }
+    char tmpLine[500];
+    enum F_MODE{V, VT, VTN} f_mode;
+    f_mode = F_MODE(VTN + 1);
+    for(;fileHandle.getline(tmpLine,500);){
+        if ( tmpLine[0] == '#' ) continue;
+        char *start;
+        if((start=strstr(tmpLine,"v "))){
+            meshv.resize(meshv.size()+1);
+            auto& xyz = *(std::prev(meshv.end()));
+            sscanf(start,"v %f%f%f",&xyz[0],&xyz[1],&xyz[2]);
+        }else if((start=strstr(tmpLine,"f "))){
+            meshf.resize(meshf.size()+1);
+            auto& f = *(std::prev(meshf.end()));
+            switch (f_mode) {
+            case VTN:
+                sscanf(start,"f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d",&f[0],&f[1],&f[2]);
+                    break;
+            case VT:
+                sscanf(start,"f %d/%*d %d/%*d %d/%*d",&f[0],&f[1],&f[2]);
+                    break;
+            case V:
+                sscanf(start,"f %d %d %d",&f[0],&f[1],&f[2]);
+                    break;
+            default:
+                if(sscanf(start,"f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d",&f[0],&f[1],&f[2])==3)
+                    f_mode = VTN;
+                else if(sscanf(start,"f %d/%*d %d/%*d %d/%*d",&f[0],&f[1],&f[2])==3)
+                    f_mode = VT;
+                else if(sscanf(start,"f %d %d %d",&f[0],&f[1],&f[2])==3)
+                    f_mode = V;
+                break;
+            }
+            f -= 1;
+        }
+    }
+    fileHandle.close();
+    return true;
+}
+
 bool readSTL(const std::string file_path, std::vector<glm::vec3> &V, std::vector<glm::ivec3>  &F ){
 	FILE* stl_file = fopen(file_path.c_str(), "rb");
 	using namespace std;

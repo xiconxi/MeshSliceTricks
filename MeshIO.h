@@ -14,4 +14,6 @@ bool readOFF(const std::string file_path, std::vector<glm::vec3>& v, std::vector
 
 bool readSTL(const std::string file_path, std::vector<glm::vec3> &V, std::vector<glm::ivec3>  &F );
 
+bool readOBJ(const std::string file_path, std::vector<glm::vec3> &V, std::vector<glm::ivec3>  &F );
+
 #endif //SLICEVISUAL_MESHIO_H

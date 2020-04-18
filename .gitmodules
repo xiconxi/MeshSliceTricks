@@ -1,3 +1,12 @@
-[submodule "Externals/gl3w"]
-	path = Externals/gl3w
+[submodule "External/glfw3.3"]
+	path = External/glfw3.3
+	url = https://github.com/glfw/glfw
+[submodule "External/glm"]
+	path = External/glm
+	url = https://github.com/g-truc/glm
+[submodule "External/gl3w"]
+	path = External/gl3w
 	url = https://github.com/skaslev/gl3w
+[submodule "External/imgui"]
+	path = External/imgui
+	url = https://github.com/ocornut/imgui

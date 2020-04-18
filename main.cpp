@@ -106,6 +106,9 @@ int main(int argc, char** argv) {
 		}else if (std::string(paths[0]).find(".off") != std::string::npos || std::string(paths[0]).find(".OFF") != std::string::npos){
 			readOFF(paths[0], v, f);
 		}
+		else if (std::string(paths[0]).find(".obj") != std::string::npos || std::string(paths[0]).find(".OBJ") != std::string::npos){
+			readOFF(paths[0], v, f);
+		}
 		assert(v.size() && v.size());
 		centralization(v);
 		params.updateInterval(v);
